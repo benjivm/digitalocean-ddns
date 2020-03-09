@@ -5,11 +5,6 @@ require __DIR__ . '/vendor/autoload.php';
 use Dotenv\Dotenv;
 use Symfony\Component\HttpClient\HttpClient;
 
-/*
- * $dotenv
- *
- * Load our .env file.
- */
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
@@ -72,16 +67,14 @@ $getDomainRecords = function () use ($httpClient) {
  * value with the given data.
  */
 $updateDnsRecord = function ($record, $data) use ($httpClient) {
-    $endpoint = sprintf(
-        'https://api.digitalocean.com/v2/domains/%s/records/%s',
-        getenv('DOMAIN'),
-        $record['id']
+    $httpClient->request(
+        'PUT',
+        'https://api.digitalocean.com/v2/domains/' . getenv('DOMAIN') . '/records/' . $record['id'],
+        [
+            'auth_bearer' => getenv('DO_API_TOKEN'),
+            'json'        => ['data' => $data, 'ttl' => 30],
+        ]
     );
-
-    $httpClient->request('PUT', $endpoint, [
-        'auth_bearer' => getenv('DO_API_TOKEN'),
-        'json'        => ['data' => $data, 'ttl' => 30],
-    ]);
 };
 
 /*
