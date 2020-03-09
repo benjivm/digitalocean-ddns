@@ -6,27 +6,26 @@ use Dotenv\Dotenv;
 use Symfony\Component\HttpClient\HttpClient;
 
 /*
-* $dotenv
-*
-* Load our .env file.
-*/
-
+ * $dotenv
+ *
+ * Load our .env file.
+ */
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 
 /*
-* $httpClient
-*
-* This is our HTTP Client.
-*/
+ * $httpClient
+ *
+ * This is our HTTP Client.
+ */
 $httpClient = HttpClient::create();
 
 /*
-* $getIp()
-*
-* This function fetches our IP from
-* the endpoint defined in .env.
-*/
+ * $getIp()
+ *
+ * This function fetches our IP from
+ * the endpoint defined in .env.
+ */
 $getIp = function () use ($httpClient) {
     $ipRequest = $httpClient->request('GET', getenv('CHECKIP_URL'));
 
@@ -34,12 +33,12 @@ $getIp = function () use ($httpClient) {
 };
 
 /*
-* $getHostnames()
-*
-* This function parses the HOSTNAMES
-* variable defined in .env, it
-* returns an array.
-*/
+ * $getHostnames()
+ *
+ * This function parses the HOSTNAMES
+ * variable defined in .env, it
+ * returns an array.
+ */
 $getHostnames = function () {
     $hostnames = getenv('HOSTNAMES');
 
@@ -51,11 +50,11 @@ $getHostnames = function () {
 };
 
 /*
-* $getDomainRecords()
-*
-* This function fetches our domain's
-* DNS records from DigitalOcean.
-*/
+ * $getDomainRecords()
+ *
+ * This function fetches our domain's
+ * DNS records from DigitalOcean.
+ */
 $getDomainRecords = function () use ($httpClient) {
     $dnsRecordsRequest = $httpClient->request(
         'GET',
@@ -67,11 +66,11 @@ $getDomainRecords = function () use ($httpClient) {
 };
 
 /*
-* $updateDnsRecord($record, $data)
-*
-* This function updates a DNS record's
-* value with the given data.
-*/
+ * $updateDnsRecord($record, $data)
+ *
+ * This function updates a DNS record's
+ * value with the given data.
+ */
 $updateDnsRecord = function ($record, $data) use ($httpClient) {
     $endpoint = sprintf(
         'https://api.digitalocean.com/v2/domains/%s/records/%s',
@@ -86,8 +85,8 @@ $updateDnsRecord = function ($record, $data) use ($httpClient) {
 };
 
 /*
-* Execute the update.
-*/
+ * Execute the update.
+ */
 $records = $getDomainRecords();
 $hostnames = $getHostnames();
 $ip = $getIp();
