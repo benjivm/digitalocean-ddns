@@ -79,15 +79,23 @@ $updateDnsRecord = function ($record, $data) use ($httpClient) {
 
 /*
  * Execute the update.
+ * Checks for a valid IP and
+ * DNS records before updating.
  */
 $records = $getDomainRecords();
 $hostnames = $getHostnames();
 $ip = $getIp();
 
+if (! filter_var($ip, FILTER_VALIDATE_IP) || ! count($records)) {
+    die('Invalid IP or missing domain records.');
+}
+
 foreach ($hostnames as $host) {
     $record = current(array_filter($records, function ($value) use ($host) {
-        return $value['name'] === $host;
+        return $value['name'] === $host && $value['type'] === 'A';
     }));
 
     $updateDnsRecord($record, $ip);
+    
+    echo "'{$host}' pointed to {$ip}\n";
 }

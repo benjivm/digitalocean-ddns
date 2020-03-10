@@ -19,4 +19,4 @@ The following assumes a Linux host, you will need to modify as needed if you are
 - Install required dependencies: `composer install`
 - Setup the environment: `cp .env.example .env && nano .env`
 - Test run: `php update.php`, if you see any errors your `.env` file is probably incorrectly configured
-- Create a scheduled task. I use this in my `crontab`: `0 * * * * php /home/benjivm/digitalocean-ddns/update.php`
+- Create a scheduled task. I use this in my `crontab`: `0 * * * * php /home/benjivm/digitalocean-ddns/update.php >> /dev/null 2>&1`
