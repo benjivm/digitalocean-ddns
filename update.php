@@ -7,22 +7,16 @@ use Symfony\Component\HttpClient\HttpClient;
 
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
-
-/*
- * $httpClient
- *
- * This is our HTTP Client.
- */
-$httpClient = HttpClient::create();
+$http = HttpClient::create();
 
 /*
  * $getIp()
  *
- * This function fetches our IP from
- * the endpoint defined in .env.
+ * Fetch our IP from the
+ * URL set in .env
  */
-$getIp = function () use ($httpClient) {
-    $ipRequest = $httpClient->request('GET', getenv('CHECKIP_URL'));
+$getIp = function () use ($http) {
+    $ipRequest = $http->request('GET', getenv('CHECKIP_URL'));
 
     return trim($ipRequest->getContent());
 };
@@ -30,9 +24,8 @@ $getIp = function () use ($httpClient) {
 /*
  * $getHostnames()
  *
- * This function parses the HOSTNAMES
- * variable defined in .env, it
- * returns an array.
+ * Parse the HOSTNAMES variable defined
+ * in .env and return an array.
  */
 $getHostnames = function () {
     $hostnames = getenv('HOSTNAMES');
@@ -47,11 +40,11 @@ $getHostnames = function () {
 /*
  * $getDomainRecords()
  *
- * This function fetches our domain's
- * DNS records from DigitalOcean.
+ * Get domain's DNS records
+ * from DigitalOcean.
  */
-$getDomainRecords = function () use ($httpClient) {
-    $dnsRecordsRequest = $httpClient->request(
+$getDomainRecords = function () use ($http) {
+    $dnsRecordsRequest = $http->request(
         'GET',
         'https://api.digitalocean.com/v2/domains/' . getenv('DOMAIN') . '/records',
         ['auth_bearer' => getenv('DO_API_TOKEN')]
@@ -63,24 +56,21 @@ $getDomainRecords = function () use ($httpClient) {
 /*
  * $updateDnsRecord($record, $data)
  *
- * This function updates a DNS record's
- * value with the given data.
+ * Update a DNS record
+ * with the given data.
  */
-$updateDnsRecord = function ($record, $data) use ($httpClient) {
-    $httpClient->request(
-        'PUT',
-        'https://api.digitalocean.com/v2/domains/' . getenv('DOMAIN') . '/records/' . $record['id'],
-        [
-            'auth_bearer' => getenv('DO_API_TOKEN'),
-            'json'        => ['data' => $data, 'ttl' => 30],
-        ]
-    );
-};
+$updateDnsRecord = fn ($record, $data) => $http->request(
+    'PUT',
+    'https://api.digitalocean.com/v2/domains/' . getenv('DOMAIN') . '/records/' . $record['id'],
+    [
+        'auth_bearer' => getenv('DO_API_TOKEN'),
+        'json'        => ['data' => $data, 'ttl' => getenv('TTL', 1800)],
+    ]
+);
 
 /*
- * Execute the update.
- * Checks for a valid IP and
- * DNS records before updating.
+ * Now bring it all together and
+ * execute the update.
  */
 $records = $getDomainRecords();
 $hostnames = $getHostnames();
@@ -91,11 +81,20 @@ if (! filter_var($ip, FILTER_VALIDATE_IP) || ! count($records)) {
 }
 
 foreach ($hostnames as $host) {
-    $record = current(array_filter($records, function ($value) use ($host) {
-        return $value['name'] === $host && $value['type'] === 'A';
-    }));
+    $record = current(
+        array_filter(
+            $records,
+            fn ($value) => $value['name'] === $host && $value['type'] === 'A'
+        )
+    );
 
-    $updateDnsRecord($record, $ip);
-    
-    echo "'{$host}' pointed to {$ip}\n";
+    if ($record) {
+        if ($record['data'] !== $ip) {
+            $updateDnsRecord($record, $ip);
+
+            echo "'{$host}' now points to {$ip}\n";
+        } else {
+            echo "'{$host}' already points to {$ip}\n";
+        }
+    }
 }

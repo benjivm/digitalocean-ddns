@@ -4,7 +4,7 @@ A command-line tool to automatically update your DigitalOcean DNS records with y
 
 ## Requirements
 
-- [PHP](https://www.php.net/downloads.php)
+- [PHP](https://www.php.net/downloads.php) >= 7.4
 - [Composer](https://getcomposer.org)
 - A DigitalOcean [API token](https://cloud.digitalocean.com/account/api/tokens)
 - A task scheduler (such as *cron* or *Windows Task Scheduler*)
@@ -16,7 +16,7 @@ The following assumes a Linux host, you will need to modify as needed if you are
 **Note:** The record(s) you want updated must already exist on DigitalOcean.
 
 - Clone or download this repository to a new directory of your choice
-- Install required dependencies: `composer install`
+- Install required dependencies: `composer install --no-dev`
 - Setup the environment: `cp .env.example .env && nano .env`
 - Test run: `php update.php`, if you see any errors your `.env` file is probably incorrectly configured
-- Create a scheduled task. I use this in my `crontab`: `0 * * * * php /home/benjivm/digitalocean-ddns/update.php >> /dev/null 2>&1`
+- Create a scheduled task, e.g., I use this in `crontab`: `0 * * * * php /home/benjivm/digitalocean-ddns/update.php >> /dev/null 2>&1` (update hourly)
