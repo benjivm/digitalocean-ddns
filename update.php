@@ -15,11 +15,9 @@ $http = HttpClient::create();
  * Fetch our IP from the
  * URL set in .env
  */
-$getIp = function () use ($http) {
-    $ipRequest = $http->request('GET', getenv('CHECKIP_URL'));
-
-    return trim($ipRequest->getContent());
-};
+$getIp = fn () => trim(
+    $http->request('GET', getenv('CHECKIP_URL'))->getContent()
+);
 
 /*
  * $getHostnames()
@@ -43,15 +41,11 @@ $getHostnames = function () {
  * Get domain's DNS records
  * from DigitalOcean.
  */
-$getDomainRecords = function () use ($http) {
-    $dnsRecordsRequest = $http->request(
-        'GET',
-        'https://api.digitalocean.com/v2/domains/' . getenv('DOMAIN') . '/records',
-        ['auth_bearer' => getenv('DO_API_TOKEN')]
-    );
-
-    return $dnsRecordsRequest->toArray()['domain_records'];
-};
+$getDomainRecords = fn () => $http->request(
+    'GET',
+    'https://api.digitalocean.com/v2/domains/' . getenv('DOMAIN') . '/records',
+    ['auth_bearer' => getenv('DO_API_TOKEN')]
+)->toArray()['domain_records'];
 
 /*
  * $updateDnsRecord($record, $data)
