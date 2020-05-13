@@ -5,8 +5,12 @@ require __DIR__ . '/vendor/autoload.php';
 use Dotenv\Dotenv;
 use Symfony\Component\HttpClient\HttpClient;
 
+// Load environment vars from
+// our .env file
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
+
+// Setup our HTTP client
 $http = HttpClient::create();
 
 /*
@@ -44,7 +48,9 @@ $getHostnames = function () {
 $getDomainRecords = fn () => $http->request(
     'GET',
     'https://api.digitalocean.com/v2/domains/' . getenv('DOMAIN') . '/records',
-    ['auth_bearer' => getenv('DO_API_TOKEN')]
+    [
+        'auth_bearer' => getenv('DO_API_TOKEN'),
+    ]
 )->toArray()['domain_records'];
 
 /*
@@ -58,7 +64,10 @@ $updateDnsRecord = fn ($record, $data) => $http->request(
     'https://api.digitalocean.com/v2/domains/' . getenv('DOMAIN') . '/records/' . $record['id'],
     [
         'auth_bearer' => getenv('DO_API_TOKEN'),
-        'json'        => ['data' => $data, 'ttl' => getenv('TTL', 1800)],
+        'json'        => [
+            'data' => $data,
+            'ttl'  => getenv('TTL', 1800),
+        ],
     ]
 );
 
@@ -82,13 +91,7 @@ foreach ($hostnames as $host) {
         )
     );
 
-    if ($record) {
-        if ($record['data'] !== $ip) {
-            $updateDnsRecord($record, $ip);
-
-            echo "'{$host}' now points to {$ip}\n";
-        } else {
-            echo "'{$host}' already points to {$ip}\n";
-        }
+    if ($record['data'] !== $ip) {
+        $updateDnsRecord($record, $ip);
     }
 }
