@@ -9,6 +9,13 @@ use Symfony\Component\HttpClient\HttpClient;
 // our .env file
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
+$dotenv->required([
+    'DO_API_TOKEN',
+    'CHECKIP_URL',
+    'DOMAIN',
+    'HOSTNAMES',
+    'TTL',
+]);
 
 // Setup our HTTP client
 $http = HttpClient::create();
@@ -66,7 +73,7 @@ $updateDnsRecord = fn ($record, $data) => $http->request(
         'auth_bearer' => getenv('DO_API_TOKEN'),
         'json'        => [
             'data' => $data,
-            'ttl'  => getenv('TTL', 1800),
+            'ttl'  => getenv('TTL'),
         ],
     ]
 );
