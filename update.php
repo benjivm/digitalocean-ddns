@@ -39,9 +39,10 @@ $getIp = fn () => trim(
 $getHostnames = function () {
     $hostnames = getenv('HOSTNAMES');
 
-    if (strpos($hostnames, ',') !== false) {
+    if (str_contains($hostnames, ',')) {
         return explode(',', $hostnames);
     }
+
 
     return [$hostnames];
 };
@@ -55,9 +56,7 @@ $getHostnames = function () {
 $getDomainRecords = fn () => $http->request(
     'GET',
     'https://api.digitalocean.com/v2/domains/' . getenv('DOMAIN') . '/records',
-    [
-        'auth_bearer' => getenv('DO_API_TOKEN'),
-    ]
+    ['auth_bearer' => getenv('DO_API_TOKEN')]
 )->toArray()['domain_records'];
 
 /*
@@ -68,7 +67,7 @@ $getDomainRecords = fn () => $http->request(
  */
 $updateDnsRecord = fn ($record, $data) => $http->request(
     'PUT',
-    'https://api.digitalocean.com/v2/domains/' . getenv('DOMAIN') . '/records/' . $record['id'],
+    sprintf('https://api.digitalocean.com/v2/domains/%s/records/%s', getenv('DOMAIN'), $record['id']),
     [
         'auth_bearer' => getenv('DO_API_TOKEN'),
         'json'        => [
