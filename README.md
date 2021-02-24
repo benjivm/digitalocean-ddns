@@ -4,7 +4,7 @@ A command-line tool to automatically update your DigitalOcean DNS records with y
 
 ## Requirements
 
-- [PHP](https://www.php.net/downloads.php) >= 7.4
+- [PHP](https://www.php.net/downloads.php) >= 8.0
 - [Composer](https://getcomposer.org)
 - A DigitalOcean [API token](https://cloud.digitalocean.com/account/api/tokens)
 - A task scheduler (such as *cron* or *Windows Task Scheduler*)
