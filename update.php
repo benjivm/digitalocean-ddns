@@ -35,7 +35,7 @@ $http = HttpClient::create();
  * @throws Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface
  * @throws Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface
  */
-$getIp = fn () => trim(
+$getIp = fn (): string => trim(
     $http->request('GET', $_ENV['CHECKIP_URL'])->getContent()
 );
 
@@ -101,13 +101,14 @@ $updateDnsRecord = fn ($record, $data) => $http->request(
  * execute the update.
  */
 $records = $getDomainRecords();
+$hostnames = $getHostnames();
 $ip = $getIp();
 
 if (! filter_var($ip, FILTER_VALIDATE_IP) || ! count($records)) {
     exit('Invalid IP or missing domain records.');
 }
 
-foreach ($getHostnames() as $host) {
+foreach ($hostnames as $host) {
     $record = current(
         array_filter(
             array: $records,
