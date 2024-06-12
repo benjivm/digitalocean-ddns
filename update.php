@@ -1,12 +1,14 @@
 <?php
 
-require __DIR__ . '/vendor/autoload.php';
+require __DIR__.'/vendor/autoload.php';
 
 use Dotenv\Dotenv;
 use Symfony\Component\HttpClient\HttpClient;
 
-// Load environment vars from
-// our .env file
+/**
+ * Load environment variables from
+ * our .env file.
+ */
 $dotenv = Dotenv::createImmutable(__DIR__);
 $dotenv->load();
 $dotenv->required([
@@ -17,83 +19,99 @@ $dotenv->required([
     'TTL',
 ]);
 
-// Setup our HTTP client
+/**
+ * Setup our HTTP client
+ */
 $http = HttpClient::create();
 
-/*
+/**
  * $getIp()
  *
  * Fetch our IP from the
  * URL set in .env
+ *
+ * @throws Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
+ * @throws Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface
+ * @throws Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface
+ * @throws Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface
  */
 $getIp = fn () => trim(
-    $http->request('GET', getenv('CHECKIP_URL'))->getContent()
+    $http->request('GET', $_ENV['CHECKIP_URL'])->getContent()
 );
 
-/*
+/**
  * $getHostnames()
  *
  * Parse the HOSTNAMES variable defined
  * in .env and return an array.
  */
-$getHostnames = function () {
-    $hostnames = getenv('HOSTNAMES');
+$getHostnames = function (): array {
+    $hostnames = $_ENV['HOSTNAMES'];
 
     if (str_contains($hostnames, ',')) {
-        return explode(',', $hostnames);
+        return array_map(
+            callback: 'trim',
+            array: explode(',', $hostnames)
+        );
     }
-
 
     return [$hostnames];
 };
 
-/*
+/**
  * $getDomainRecords()
  *
  * Get domain's DNS records
  * from DigitalOcean.
+ *
+ * @throws Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface
+ * @throws Symfony\Contracts\HttpClient\Exception\DecodingExceptionInterface
+ * @throws Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface
+ * @throws Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface
+ * @throws Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
  */
-$getDomainRecords = fn () => $http->request(
+$getDomainRecords = fn (): array => $http->request(
     'GET',
-    'https://api.digitalocean.com/v2/domains/' . getenv('DOMAIN') . '/records',
-    ['auth_bearer' => getenv('DO_API_TOKEN')]
+    'https://api.digitalocean.com/v2/domains/'.$_ENV['DOMAIN'].'/records',
+    ['auth_bearer' => $_ENV['DO_API_TOKEN']]
 )->toArray()['domain_records'];
 
-/*
+/**
  * $updateDnsRecord($record, $data)
  *
  * Update a DNS record
  * with the given data.
+ *
+ * @throws Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface
  */
 $updateDnsRecord = fn ($record, $data) => $http->request(
     'PUT',
-    sprintf('https://api.digitalocean.com/v2/domains/%s/records/%s', getenv('DOMAIN'), $record['id']),
+    sprintf('https://api.digitalocean.com/v2/domains/%s/records/%s', $_ENV['DOMAIN'], $record['id']),
     [
-        'auth_bearer' => getenv('DO_API_TOKEN'),
-        'json'        => [
+        'auth_bearer' => $_ENV['DO_API_TOKEN'],
+        'json' => [
             'data' => $data,
-            'ttl'  => getenv('TTL'),
+            'ttl' => $_ENV['TTL'],
         ],
     ]
 );
 
-/*
+/**
  * Now bring it all together and
  * execute the update.
  */
 $records = $getDomainRecords();
-$hostnames = $getHostnames();
 $ip = $getIp();
 
 if (! filter_var($ip, FILTER_VALIDATE_IP) || ! count($records)) {
-    die('Invalid IP or missing domain records.');
+    exit('Invalid IP or missing domain records.');
 }
 
-foreach ($hostnames as $host) {
+foreach ($getHostnames() as $host) {
     $record = current(
         array_filter(
-            $records,
-            fn ($value) => $value['name'] === $host && $value['type'] === 'A'
+            array: $records,
+            callback: fn ($value) => $value['name'] === $host && $value['type'] === 'A'
         )
     );
 

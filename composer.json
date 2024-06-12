@@ -1,8 +1,8 @@
 {
     "require": {
         "php": "^8.0",
-        "symfony/http-client": "^5.0",
-        "vlucas/phpdotenv": "^4.1"
+        "symfony/http-client": "^7.0",
+        "vlucas/phpdotenv": "^5.0"
     },
     "require-dev": {
         "symfony/var-dumper": "^5.0"
