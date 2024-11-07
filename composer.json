@@ -1,7 +1,7 @@
 {
     "require": {
         "php": "^8.0",
-        "symfony/http-client": "^7.0",
+        "symfony/http-client": "^7.1.7",
         "vlucas/phpdotenv": "^5.0"
     },
     "require-dev": {
